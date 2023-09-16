@@ -59,8 +59,11 @@ MATH
 #and the angular offset of the polarizing filters from full Tx, beta
 #utilizing the equation in the Swadling et al. paper
 #Rev. Sci. Instrum. 85, 11E502 (2014); https://doi.org/10.1063/1.4890564
+# def getRotation(probe_ratio, D, beta):
+#     return 1/2*np.arcsin(probe_ratio*D*np.tan(beta)/2)
+# my derivation for veta either side of full transmission
 def getRotation(probe_ratio, D, beta):
-    return 1/2*np.arcsin(probe_ratio*D*np.tan(beta)/2)
+    return 1/2*np.arcsin(-probe_ratio*D/(2*np.tan(beta)))
 
 #normalize shots by backgrounds to eliminate camera/nd filter stack sensitivity
 
@@ -74,7 +77,7 @@ D = np.array(Image.open(getfile("Select D")))
 #ratio of background to shot probe beam intensities, probe_ratio
 probe_ratio = 1     #placeholder for now TODO: find method to obtain
 print("Enter polarizer angle, beta [deg]: ")
-beta = eval(input())*np.pi/180
+beta = eval(input())*np.pi/180  #[deg]->[rad]
 alpha = getRotation(probe_ratio, D, beta)
 alpha_deg = alpha*180/np.pi
 
