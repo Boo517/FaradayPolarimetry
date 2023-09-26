@@ -1,0 +1,3 @@
+Peak Current: 281.4979 kA at t = 3.0203 microseconds after trigger
+Current Start: t = 1.7391 microseconds after trigger
+Rise time: 1281.2131 nanoseconds
