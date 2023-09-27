@@ -63,7 +63,8 @@ MATH
 #     return 1/2*np.arcsin(probe_ratio*D*np.tan(beta)/2)
 # my derivation for veta either side of full transmission
 def getRotation(probe_ratio, D, beta):
-    return 1/2*np.arcsin(-probe_ratio*D/(2*np.tan(beta)))
+    return 1/2*np.arcsin(-probe_ratio*D/(2*np.tan(beta)))   #beta from full
+    # return 1/2*np.arcsin(-probe_ratio*D*np.tan(beta)/2)     #beta from extinct
 
 #normalize shots by backgrounds to eliminate camera/nd filter stack sensitivity
 
