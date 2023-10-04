@@ -34,12 +34,12 @@ def getfile(message):
     filepath = tkFileDialog.askopenfilename(parent=root,title=message)    
     return filepath 
 
+#select bg and shot images, saving filenames and loading the images into arrays
 names = ["bg1", "shot1", "bg2", "shot2"]
-files = [getfile("Choose "+name) for name in names]
-#dict comprehension for funsies
-# files = {name:getfile("Choose "+name) for name in names} 
-# [bg1, shot1, bg2, shot2] = [np.array(Image.open(file)) for file in files]
-folder = '/'.join(files[0].split('/')[:-1]) + '/'
+files = {name:getfile("Choose "+name) for name in names} 
+images = {name:np.array(Image.open(files[name])) for name in names}
+#get path to folder containing first file in files
+folder = '/'.join(files[0].split('/')[:-1]) + '/'   
 #%%
 """
 IMAGE ALIGNMENT
