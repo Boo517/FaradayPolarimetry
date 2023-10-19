@@ -38,46 +38,52 @@ def getfile(message):
 #select bg and shot images, saving filenames and loading the images into arrays
 # NOTE: For now, can't figure out how to get PIL to import raw images as 16-bit
 # instead of 8-bit. Just use imagej module to convert to 16-bit tiff first
-names = ["bg1", "shot1", "bg2", "shot2"]
+names = ["bg1", "shot1", "bg2", "shot2", "align1", "align2"]
+# TODO: figure out imagej library or find another way to create a 
+# subselection for alignment
 files = {name:getfile("Choose "+name) for name in names} 
 images = {name:np.array(Image.open(files[name])) for name in names}
 #get path to folder containing first file in files
 folder = '/'.join(files['bg1'].split('/')[:-1]) + '/'   
 
 # show images
-fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2,2)
-axes = {"bg1":ax1,"shot1":ax2,"bg2":ax3,"shot2":ax4}
-for name in names:
-    axes[name].imshow(images[name])
-    axes[name].set_title(name)
+# fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2,2)
+# axes = {"bg1":ax1,"shot1":ax2,"bg2":ax3,"shot2":ax4}
+# for name in names:
+#     axes[name].imshow(images[name])
+#     axes[name].set_title(name)
     
 #%%
 """
 NORMALIZATION AND ALIGNMENT
 """
+# unflip images which was mirrored by the beamsplitter
+images["bg2"] = np.flip(images["bg2"], 1)
+images["shot2"] = np.flip(images["shot2"], 1)
+
 # normalize shots by backgrounds to eliminate camera/nd filter sensitivity
 # no need to align shots with bgs on same camera, and in fact there's
 # a bug rn that makes it so images too aligned return an empty array
 # N1 = I_S+(x,y)/I_B+(x,y), N2 = I_S-(x,y)/I_B-(x,y)
-N1 = images["shot1"]/images["bg1"]
-N2 = images["shot2"]/images["bg2"]
+images["N1"] = images["shot1"]/images["bg1"]
+images["N2"] = images["shot2"]/images["bg2"]
 
-# unflip normalized image which was mirrored by the beamsplitter
-N2 = np.flip(N2, 1)
-
-N1_im = Image.fromarray(N1)
-N1_im.save(folder+"N1.tif")
-N2_im = Image.fromarray(N2)
-N2_im.save(folder+"N2.tif")
 # Use phase correlation to find displacement btwn images
 # and align them through cropping. Using raw images instead of normalized
 # because there are more features to align
-(dx, dy) = phaseCorrelation.phaseCorrelate(
-    images["bg1"], np.flip(images["bg2"], 1))
-(N1_aligned, N2_aligned) = phaseCorrelation.cropAlign(N1, N2, dx, dy)
+# update 10-19: and using subselection of interest so we align 
+# what we care about
+(dx, dy) = phaseCorrelation.phaseCorrelate(images["align1"], images["align2"])
+# (dx, dy) = phaseCorrelation.phaseCorrelate(images["bg1"], images["bg2"])
+# (dx, dy) = phaseCorrelation.phaseCorrelate(images["N1"], images["N2"])
+(images["N1_aligned"], images["N2_aligned"]) = phaseCorrelation.cropAlign(
+    images["N1"], images["N2"], dx, dy)
+(images["bg1_aligned"], images["bg2_aligned"]) = phaseCorrelation.cropAlign(
+    images["bg1"], images["bg2"], dx, dy)
+
 #subtract normalized images to eliminate self-emission
 #D = I_S+(x,y)/I_B+(x,y) - I_S-(x,y)/I_B-(x,y) = N1 - N2
-D = N1_aligned - N2_aligned
+images["D"] = images["N1_aligned"] - images["N2_aligned"]
 
 #%%
 """
@@ -98,31 +104,24 @@ def getRotation(probe_ratio, D, beta):
 #for testing, just import the D image created by hand in imageJ
 # D = np.array(Image.open(getfile("Select D")))
              
-#get rotation angle alpha from D, polarizer angle beta, and  
-#ratio of background to shot probe beam intensities, probe_ratio
-probe_ratio = 1     #placeholder for now TODO: find method to obtain
+# get rotation angle alpha from D, polarizer angle beta, and  
+# ratio of background to shot probe beam intensities, probe_ratio
+# placeholder for now TODO: find method to obtain (laser energy meter?)
+probe_ratio = 1     
 print("Enter polarizer angle, beta [deg]: ")
 beta = eval(input())*np.pi/180  #[deg]->[rad]
-alpha = getRotation(probe_ratio, D, beta)
-alpha_deg = alpha*180/np.pi
+alpha = getRotation(probe_ratio, images["D"], beta)
+images["alpha_deg"] = alpha*180/np.pi
 
-#get magnetic field strength from rotation angle, alpha = V*B*L
-#TODO: mask for glass? (like a pseudo-density map)
-B = alpha/(V*L)
+# get magnetic field strength from rotation angle, alpha = V*B*L
+images["B"] = alpha/(V*L)
 #%%
 """
 PLOTTING
 """
-#plot rotation angle in space
-fig1, ax1 = plt.subplots()
-color1 = ax1.pcolormesh(alpha_deg, cmap="plasma")
-fig1.colorbar(color1, ax=ax1,label="Faraday Rotation Angle [Degrees]")
-#save figure
-plt.savefig(folder+"rotation_plot")
-
-#plot magnetic field in space
+# plot magnetic field in space
 fig2, ax2 = plt.subplots()
-color2 = ax2.pcolormesh(B, cmap="plasma")
+color2 = ax2.pcolormesh(np.flip(images["B"], 0), cmap="plasma")
 fig2.colorbar(color2, ax=ax2,label="Magnetic Field [T]")
 #save figure
 plt.savefig(folder+"B_plot")
@@ -133,11 +132,12 @@ plt.show()
 """
 IMAGE EXPORT
 """
-B_im = Image.fromarray(B)
-B_im.save(folder+"bfield.tif")
+save_images = ["bg1_aligned", "bg2_aligned", "N1", "N2", "N1_aligned",
+               "N2_aligned", "D", "alpha_deg", "B"]
+for name in save_images:
+    Image.fromarray(images[name]).save(folder+name+".tif")
 
-alpha_deg_im = Image.fromarray(alpha_deg)
-alpha_deg_im.save(folder+"alpha_deg.tif")
+
 
 
 
