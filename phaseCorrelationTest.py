@@ -11,7 +11,7 @@ PACKAGE IMPORTS
 """
 import numpy as np
 import tkinter as Tkinter, tkinter.filedialog as tkFileDialog
-from PIL import Image, ImageOps
+from PIL import Image#, ImageOps
 import matplotlib.pyplot as plt
 import phaseCorrelation
 
@@ -19,9 +19,23 @@ import phaseCorrelation
 """
 DEBUG
 """
+# if true, flip im2 to account for beamsplitter mirroring
+flip = True
+
 # set true to use cropped subselection of a single image 
 # instead of 2 separate images
-subselection = False   
+subselection = False
+if subselection:
+    flip = True     # subselection automatically preflips
+
+# set true to use cropped subselections for alignment instead of full images
+align_images = True
+
+# save aligned images if true
+save = True
+
+phasecorr_margin = 0
+phasecorr_plotting = True
 
 #%%
 """
@@ -36,38 +50,35 @@ def getfile(message):
     filepath = tkFileDialog.askopenfilename(parent=root,title=message)    
     return filepath 
 
-# choose 2 images to perform phase correlation on
+# choose images to perform phase correlation on
 file1 = getfile('Select Image 1')
 folder = '/'.join(file1.split('/')[:-1]) + '/'
 # load images
-im1 = Image.open(file1)
+im1 = np.array(Image.open(file1))
 if not subselection:
-    im2 = Image.open(getfile('Select Image 2'))
-    
-# convert to grayscale numpy arrays
-# im1 = np.array(ImageOps.grayscale(im1))
-# if not subselection:
-#     im2 = np.array(ImageOps.grayscale(im2))
-
-im1 = np.array(im1)
-if not subselection:
-    im2 = np.array(im2)
-
-# take cropped subselections of to simulate translation
-if subselection:
+    im2 = np.array(Image.open(getfile('Select Image 2')))
+else:
+    # take cropped subselections of im1 to simulate translation
     # NOTE: translations should be smaller than margins for this to work 
-    dx_set = 150
-    dy_set = -150
+    dx_set = 1
+    dy_set = 1
     #spacing from each edge for crop, so negative translations work
     margins = [200, 200, 200, 200]    
     im = im1    # copy of im1, as i1 is cropped and im2 should be
     # a subselection of the og im1, not the cropped version
     im1 = im[margins[0]:-margins[1], margins[2]:-margins[3]]   # crop
     # translated crop
-    im2 = im[margins[0]+dx_set:-margins[1]+dx_set, 
-              margins[2]+dy_set:-margins[3]+dy_set]
-    # flip image to simulate effect of beamsplitter, so the next line
+    im2 = im[margins[0]+dy_set:-margins[1]+dy_set, 
+              margins[2]+dx_set:-margins[3]+dx_set]
+    # flip image to simulate effect of beamsplitter
     im2 = np.flip(im2, 1)
+    
+# convert to grayscale numpy arrays
+# not doing this right now, as importing cr2 w PIL reduces to 8-bit, instead
+# just importing 16-bit linear tiffs using imagej dcrawreader
+# im1 = np.array(ImageOps.grayscale(im1))
+# if not subselection:
+#     im2 = np.array(ImageOps.grayscale(im2))
 
 #%%
 """
@@ -76,11 +87,21 @@ PHASE CORRELATION
 # TODO: try zero-padding the images to see if it has an effect
 
 # flip one image horizontally bc they're mirrored from the beamsplitter
-# (comment out if using cropped subselection)
-im2 = np.flip(im2, 1)
-(dx, dy) = phaseCorrelation.phaseCorrelate(im1, im2)
+# no need to comment out if using cropped subselection bc pre-flips
+if flip:
+    im2 = np.flip(im2, 1)
+# use phase correlation to get displacement of images, using alignment images,
+# if align_images is True or otherwise just using im1 and im2
+if not align_images:
+    (dx, dy) = phaseCorrelation.phaseCorrelate(im1, im2, 
+                       margin=phasecorr_margin, plotting=phasecorr_plotting)
+else:
+    (dx, dy) = phaseCorrelation.phaseCorrelate(
+        np.array(Image.open(getfile('Select Align1'))),
+        np.array(Image.open(getfile('Select Align2'))),
+        margin=phasecorr_margin, plotting=phasecorr_plotting)
 print("Displacement: ({}, {})".format(dx, dy))
-(im1_crop, im2_crop) = phaseCorrelation.cropAlign(im1, im2, dx, dy)
+(im1_aligned, im2_aligned) = phaseCorrelation.cropAlign(im1, im2, dx, dy)
     
 #%%
 """
@@ -95,11 +116,19 @@ ax2.imshow(im2)
 ax2.set_title("Image 2")
 
 # plot cropped images
-ax3.imshow(im1_crop)
+ax3.imshow(im1_aligned)
 ax3.set_title("Cropped Image 1")
 
-ax4.imshow(im2_crop)
+ax4.imshow(im2_aligned)
 ax4.set_title("Cropped Image 2")
+
+#%%
+"""
+SAVE IMAGES
+"""
+if save:
+    Image.fromarray(im1_aligned).save(folder+"im1_aligned"+".tif")
+    Image.fromarray(im2_aligned).save(folder+"im2_aligned"+".tif")
 
 
 

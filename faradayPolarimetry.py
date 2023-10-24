@@ -41,14 +41,17 @@ def getfile(message):
 names = ["bg1", "shot1", "bg2", "shot2", "align1", "align2"]
 # TODO: figure out imagej library or find another way to create a 
 # subselection for alignment
+# NOTE: align images are expected to not be mirrored, as that is required
+# when manually cropping matching subelections in imagej stacks
 files = {name:getfile("Choose "+name) for name in names} 
 images = {name:np.array(Image.open(files[name])) for name in names}
 #get path to folder containing first file in files
 folder = '/'.join(files['bg1'].split('/')[:-1]) + '/'   
 
 # show images
-# fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2,2)
-# axes = {"bg1":ax1,"shot1":ax2,"bg2":ax3,"shot2":ax4}
+# fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(3,2)
+# axes = {"bg1":ax1,"shot1":ax2,"bg2":ax3,"shot2":ax4,
+        # "align1":ax5, "align2":ax6}
 # for name in names:
 #     axes[name].imshow(images[name])
 #     axes[name].set_title(name)
