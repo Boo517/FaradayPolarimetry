@@ -84,8 +84,6 @@ else:
 """
 PHASE CORRELATION
 """
-# TODO: try zero-padding the images to see if it has an effect
-
 # flip one image horizontally bc they're mirrored from the beamsplitter
 # no need to comment out if using cropped subselection bc pre-flips
 if flip:

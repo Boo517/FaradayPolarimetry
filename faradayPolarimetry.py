@@ -16,6 +16,13 @@ import matplotlib.pyplot as plt
 import phaseCorrelation
 
 #%%
+"""
+OPTIONS
+"""
+phasecorr_margin = 0
+phasecorr_plotting = False
+
+#%%
 """ 
 EXPERIMENTAL VALUES
 """
@@ -43,6 +50,9 @@ names = ["bg1", "shot1", "bg2", "shot2", "align1", "align2"]
 # subselection for alignment
 # NOTE: align images are expected to not be mirrored, as that is required
 # when manually cropping matching subelections in imagej stacks
+# BE CAREFUL that the align images are flipped the same way as their full image
+# counterparts, else the given translation and crop will flip sign
+# TODO: writeup user instructions for this program
 files = {name:getfile("Choose "+name) for name in names} 
 images = {name:np.array(Image.open(files[name])) for name in names}
 #get path to folder containing first file in files
@@ -76,7 +86,8 @@ images["N2"] = images["shot2"]/images["bg2"]
 # because there are more features to align
 # update 10-19: and using subselection of interest so we align 
 # what we care about
-(dx, dy) = phaseCorrelation.phaseCorrelate(images["align1"], images["align2"])
+(dx, dy) = phaseCorrelation.phaseCorrelate(images["align1"], images["align2"],
+                       margin=phasecorr_margin, plotting=phasecorr_plotting)
 # (dx, dy) = phaseCorrelation.phaseCorrelate(images["bg1"], images["bg2"])
 # (dx, dy) = phaseCorrelation.phaseCorrelate(images["N1"], images["N2"])
 (images["N1_aligned"], images["N2_aligned"]) = phaseCorrelation.cropAlign(
