@@ -50,8 +50,8 @@ names = ["bg1", "shot1", "bg2", "shot2", "align1", "align2"]
 # subselection for alignment
 # NOTE: align images are expected to not be mirrored, as that is required
 # when manually cropping matching subelections in imagej stacks
-# BE CAREFUL that the align images are flipped the same way as their full image
-# counterparts, else the given translation and crop will flip sign
+# BE CAREFUL that the align images are flipped to match im1
+# else the given translation and crop will flip sign (bc im2 is flipped)
 # TODO: writeup user instructions for this program
 files = {name:getfile("Choose "+name) for name in names} 
 images = {name:np.array(Image.open(files[name])) for name in names}
