@@ -56,7 +56,8 @@ names = ["bg1", "shot1", "bg2", "shot2", "align1", "align2"]
 files = {name:getfile("Choose "+name) for name in names} 
 images = {name:np.array(Image.open(files[name])) for name in names}
 #get path to folder containing first file in files
-folder = '/'.join(files['bg1'].split('/')[:-1]) + '/'   
+folder = '/'.join(files['bg1'].split('/')[:-1]) + '/' 
+dateshot = folder.split('/')[-3]    # date and shot# string, eg 110223s4
 
 # show images
 # fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(3,2)
@@ -146,10 +147,10 @@ plt.show()
 """
 IMAGE EXPORT
 """
-save_images = ["bg1_aligned", "bg2_aligned", "N1", "N2", "N1_aligned",
+save_images = ["bg1_aligned", "bg2_aligned", "N1_aligned",
                "N2_aligned", "D", "alpha_deg", "B"]
 for name in save_images:
-    Image.fromarray(images[name]).save(folder+name+".tif")
+    Image.fromarray(images[name]).save(folder+"out/"+dateshot+"_"+name+".tif")
 
 
 
