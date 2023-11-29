@@ -1,0 +1,4 @@
+[console_scripts]
+ird = imreg_dft.cli:main
+ird-show = imreg_dft.show:main
+ird-tform = imreg_dft.tform:main
