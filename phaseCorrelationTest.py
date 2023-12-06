@@ -29,12 +29,12 @@ if subselection:
     flip = True     # subselection automatically preflips
 
 # set true to use cropped subselections for alignment instead of full images
-align_images = True
+align_images = False
 
 # save aligned images if true
 save = True
 
-phasecorr_margin = 0
+phasecorr_margin = 10
 phasecorr_plotting = True
 
 #%%

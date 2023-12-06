@@ -150,7 +150,7 @@ IMAGE EXPORT
 save_images = ["bg1_aligned", "bg2_aligned", "N1_aligned",
                "N2_aligned", "D", "alpha_deg", "B"]
 for name in save_images:
-    Image.fromarray(images[name]).save(folder+"out/"+dateshot+"_"+name+".tif")
+    Image.fromarray(images[name]).save(folder+dateshot+"_"+name+".tif")
 
 
 
