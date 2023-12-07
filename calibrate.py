@@ -75,15 +75,16 @@ SAVE RESULT DICT TO JSON
 calibration_dict = result.copy()
 del calibration_dict["timg"]    # no need to save transformed image in json
 # can't json-ize ndarray, so convert to python list
-calibration_dict['tvec'] = list(calibration_dict['tvec'])   
+calibration_dict["tvec"] = list(calibration_dict["tvec"]) 
+calibration_dict["path"] = folder[:-1] 
 
 # save in FaradayPolarimetry/calibration
 os.makedirs("calibration", exist_ok=True)      # make sure directory exists
 with open("calibration/calibration.json", 'w') as f:
-    json.dump(calibration_dict, f)
+    json.dump(calibration_dict, f, indent=1)
 
 # save in folder where images are from, too 
 # which should be a folder specifically for the calibration, 
 # e.g November/110223_calibration
 with open(folder+"calibration.json", 'w') as f:
-    json.dump(calibration_dict, f)
+    json.dump(calibration_dict, f, indent=1)
