@@ -1,5 +1,0 @@
-Peak Current: 82.4497 kA at t = 2.3332 microseconds after trigger
-Current Start: t = 1.2498 microseconds after trigger
-Rise time: 1083.4184 nanoseconds
-Charge from integrating: 0.5965 C
-Capacitor charge: 0.1550 C
