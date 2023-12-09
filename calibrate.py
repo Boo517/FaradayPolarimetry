@@ -53,6 +53,7 @@ def load_calibration(filepath):
 
 # returns aligned and cropped im1 and im2 according to calibration,
 # transforming im2 to match im1
+# NOTE: does NOT flip im2
 def apply_calibration(im1, im2, calibration):
     # use calibration to scale and rotate im2 using imreg_dft
     # 'scangle' stands for 'scale and angle'
@@ -112,6 +113,15 @@ def find_calibration(folder):
     
     return calibration
 
+# plot four images from dict 'images' with keys 'names', titled based on their
+# names
+def plot4(images, names):
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2,2)
+    axes = [ax1, ax2, ax3, ax4]
+    for i in range(len(axes)):
+        axes[i].imshow(images[names[i]])
+        axes[i].set_title(names[i])
+        
 # allow the user to choose 2 images for calibration, then save the calibration
 # to the folder the images were located in and the program folder,
 # returning the images chosen, the calibration, 
@@ -143,7 +153,22 @@ def calibrate_select():
     save_calibration(calibration, program_folder+"/calibration")
     return (images["im1"], images["im2"], calibration, folder)
 
-
+# prompt user to select 2 images to apply a calibration to as well as
+# the calibration file to use, then save the calibrated images
+# to the folder the images were from
+# NOTE: DOES flip im2
+def apply_select():
+    # get images to align
+    names = ["im1", "im2"]
+    (files, images, folder) = utils.select_images(names)
+    images["im2"] = np.flip(images["im2"], 1)
+    # get calibrationand apply it
+    calibration = find_calibration(folder)
+    (images["im1_aligned"], images["im2_aligned"]) = apply_calibration(
+        images["im1"], images["im2"],calibration)
+    # save aligned images to folder
+    utils.save_images(images, ["im1_aligned", "im2_aligned"], folder)
+    
 def main(plot=False,save=False):
     # get images and save calibration to image and program folders
     images = {}
@@ -165,9 +190,7 @@ def main(plot=False,save=False):
     # save images
     if save:
         names = ["im1_aligned", "im2_aligned"]
-        for name in names:
-            Image.fromarray(images[name]).save(
-                folder+"/"+name+".tif")
+        utils.save_images(images, names, folder)
             
 #%%
 """
