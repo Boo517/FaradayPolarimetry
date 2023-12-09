@@ -10,6 +10,8 @@ Created on Thu Dec  7 14:36:19 2023
 IMPORTS
 """
 import tkinter as Tkinter, tkinter.filedialog as tkFileDialog
+from PIL import Image
+import numpy as np
 
 #%%
 """
@@ -39,6 +41,27 @@ class UI():
 """
 FUNCTIONS
 """
+# returns the folder containing the FaradayPolarimetry scripts
 def get_program_folder():
     # remove program file from prgram filepath to get folder it's in
     return '/'.join(__file__.split('/')[:-1])
+
+# prompt the user to select images from list 'names', and return
+# dicts of [name]:[file] and [name]:[image array], as well as the path
+# of the folder the first image is from
+def select_images(names):
+    ui = UI()     # create UI object for file select dialog
+    
+    # choose imgs to create calibration from
+    files = {name:ui.getfile("Choose "+name) for name in names} 
+    images = {name:np.array(Image.open(files[name])) for name in names}
+    folder = '/'.join(files['im1'].split('/')[:-1]) 
+    
+    return (files, images, folder) 
+
+# saves images in dict 'images' with keys in 'names' to 'folder'
+# as "[name].tif"
+def save_images(images, names, folder):
+    for name in names:
+        Image.fromarray(images[name]).save(
+            folder+"/"+name+".tif")
