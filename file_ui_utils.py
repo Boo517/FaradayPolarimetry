@@ -12,6 +12,7 @@ IMPORTS
 import tkinter as Tkinter, tkinter.filedialog as tkFileDialog
 from PIL import Image
 import numpy as np
+import os
 
 #%%
 """
@@ -26,9 +27,15 @@ class UI():
         
     # this function opens a file select dialog through Tkinter and returns 
     # the path to the selected file
-    def getfile(self, message):
+    def getfile(self, message="Choose a file"):
         filepath = tkFileDialog.askopenfilename(parent=self.root,title=message)    
         return filepath 
+    
+    # this function opens a file select dialog through Tkinter and returns 
+    # the path to the selected file
+    def getdir(self, message="Choose a directory"):
+        dirpath = tkFileDialog.askdirectory(parent=self.root,title=message)    
+        return dirpath 
 
     # this function opens a question dialog with 'yes' and 'no' buttons,
     # returning the string 'yes' or 'no' depending on the choice
@@ -45,6 +52,28 @@ FUNCTIONS
 def get_program_folder():
     # remove program file from prgram filepath to get folder it's in
     return '/'.join(__file__.split('/')[:-1])
+
+# renames a file so that it has a prefix
+# also works with directories
+def prefix_file(path, prefix):
+    filename = path.split('/')[-1]
+    filename = prefix+filename
+    os.rename(path, filename)
+
+# prefix everything in a directory unless it's already prefixed or in 'skip'
+def prefix_contents(directory, prefix, skip=[]):
+    # swap working dir to provided one, so we can just use filenames for 
+    # contents instead of full path
+    owd = os.getcwd()
+    os.chdir(directory)
+    try: 
+        contents = os.listdir(directory)
+        for content in contents:
+            if not (content in skip or prefix in content):
+                prefix_file(content, prefix)
+    finally:
+        # swap back to old working dir before returning
+        os.chdir(owd)
 
 # prompt the user to select images from list 'names', and return
 # dicts of [name]:[file] and [name]:[image array], as well as the path
