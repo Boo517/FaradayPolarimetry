@@ -54,7 +54,7 @@ dateshot = folder.split('/')[-3]    # date and shot# string, eg 110223s4
 """
 NORMALIZATION
 """
-# unflip images which was mirrored by the beamsplitter
+# unflip images mirrored by the beamsplitter
 images["bg2"] = np.flip(images["bg2"], 1)
 images["shot2"] = np.flip(images["shot2"], 1)
 

@@ -168,9 +168,11 @@ def apply_select():
         images["im1"], images["im2"],calibration)
     # save aligned images to folder
     utils.save_images(images, ["im1_aligned", "im2_aligned"], folder)
-    
+
+# select images to create calibration from, use calibration to align the images
+# used to create the calibration, plot them, and save them
 def main(plot=False,save=False):
-    # get images and save calibration to image and program folders
+    # create calibration
     images = {}
     (images["im1"], images["im2"], calibration, folder) = calibrate_select()
     
