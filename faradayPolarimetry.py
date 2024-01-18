@@ -130,5 +130,7 @@ IMAGE EXPORT
 save_images = ["N1_aligned","N2_aligned", "D", "alpha_deg", "B"]
 # create output folder if needed
 os.makedirs(folder+"out", exist_ok=True)
-for name in save_images:
-    Image.fromarray(images[name]).save(folder+"out/"+dateshot+"_"+name+".tif")
+utils.save_images(images, save_images, folder+"out")
+# for name in save_images:
+    # Image.fromarray(images[name]).save(folder+"out/"+dateshot+"_"+name+".tif")
+    
