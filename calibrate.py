@@ -72,44 +72,52 @@ def apply_calibration(im1, im2, calibration):
 # finds a calibration file, searching first
 def find_calibration(folder):
     ui = utils.UI()
-    choosefile = False        
-    using_curcal = False
-    program_folder = utils.get_program_folder()    
+    program_folder = utils.get_program_folder()   
+    
     # look for calibration file in folder first
-    if os.path.isfile(folder+"/calibration.json"):
-        calibration = load_calibration(folder+"/calibration.json")
-        print("Using calibration file found in folder, from path "
+    owd = os.getcwd()
+    try:
+        os.chdir(folder)
+        if os.path.isfile("calibration.json"):
+            calibration = load_calibration("calibration.json")
+            print("Using calibration file found in folder, from path "
               +calibration["path"])
+            return calibration
+    except:
+        print("Problem checking specified folder")
+    finally:
+        os.chdir(owd)
         
-    # if calibration in FaradayPolarimetry/calibration exists, 
-    # ask if it is ok to use, and if not, ask to choose a calibration file
-    elif os.path.isfile(program_folder+"/calibration/calibration.json"):
-        curcal = load_calibration(
-            program_folder+"/calibration/calibration.json")  
-        answer = ui.ask("Is the current calibration, from "+curcal["path"]+
-                 ", ok to use?")
-        if answer == "yes":
-            calibration=curcal
-            using_curcal = True
-        else:
-            choosefile = True
-            
-    # if no calibration file in image folder or FaradayPolarimetry/calibration
-    else:
-        choosefile = True
-
-    # choose a calibration file
-    if choosefile:
-        file = ui.getfile("Choose a calibration file")
-        calibration = load_calibration(file)
-
-    # allow the user to save calibration to folder if it wasn't already
-    if choosefile or using_curcal:
+    # asks user if they want to save a calibration to the provided folder
+    def ask_save(calibration):
         message = """would you like to save the chosen calibration to the folder 
         to avoid choosing next time?"""
         answer = ui.ask(message)
         if answer == "yes":
+            print("saving calibration to folder")
             save_calibration(calibration, folder)
+        
+    # if calibration in FaradayPolarimetry/calibration exists, 
+    # ask if it is ok to use, and if not, ask to choose a calibration file
+    try:
+        os.chdir(program_folder)
+        if os.path.isfile("calibration/calibration.json"):
+            curcal = load_calibration("calibration/calibration.json") 
+            # show user path of folder where images for calibration were taken
+            answer = ui.ask("Is the current calibration, from "+curcal["path"]+
+                     ", ok to use?")
+            if answer == "yes":
+                print("using calibration from program folder")
+                ask_save(curcal)
+                return curcal
+    finally:
+        os.chdir(owd)
+        
+    # if no calibration in provided folder or FaradayPolarimetry/calibration,
+    # choose a calibration file
+    file = ui.getfile("Choose a calibration file")
+    calibration = load_calibration(file)
+    ask_save(calibration)
     
     return calibration
 
