@@ -12,6 +12,7 @@ IMPORTS
 import tkinter as Tkinter, tkinter.filedialog as tkFileDialog
 from PIL import Image
 import numpy as np
+import rawpy
 import os
 
 #%%
@@ -48,10 +49,20 @@ class UI():
 """
 FUNCTIONS
 """
+# converts a path separated by forward slashes by one separated by 
+# backslashes
+def backslashify(path):
+    return "/".join(path.split("\\"))
+
+def get_parent(file):
+    return '/'.join(file.split('/')[:-1])
+    
 # returns the folder containing the FaradayPolarimetry scripts
 def get_program_folder():
-    # remove program file from prgram filepath to get folder it's in
-    return '/'.join(__file__.split('/')[:-1])
+    # get parent of program file
+    # NOTE: __file__ path style is  "C:\foo\bar", tkinter style is "C:/foo/bar"
+    # and os style is "C:\\foo\\bar"
+    return get_parent(backslashify(__file__))
 
 # renames a file so that it has a prefix
 # also works with directories
@@ -65,8 +76,8 @@ def prefix_contents(directory, prefix, skip=[]):
     # swap working dir to provided one, so we can just use filenames for 
     # contents instead of full path
     owd = os.getcwd()
-    os.chdir(directory)
     try: 
+        os.chdir(directory)
         contents = os.listdir(directory)
         for content in contents:
             if not (content in skip or prefix in content):
@@ -75,16 +86,55 @@ def prefix_contents(directory, prefix, skip=[]):
         # swap back to old working dir before returning
         os.chdir(owd)
 
+# use rawpy to import a raw image file and convert it into a numpy array
+def unraw(file):
+    with rawpy.imread(file) as raw:
+        # raw.raw_image is freed when raw is, so need to make a copy to return
+        im = raw.raw_image.copy()
+    return im
+
+# prompts the user for a directory
+# takes all the .CR2 images in that directory and converts them to .tiffs, 
+# saving them in a new folder
+def unraw_dir():
+    ui = UI()
+    directory = ui.getdir()
+    types = [".cr2"]
+    owd = os.getcwd()
+    try:
+        os.chdir(directory)
+        contents = os.listdir()
+        images = {}
+        for content in contents:
+            # check extension matches types,
+            # converting ext to lowercase so no need to check for .cr2 vs .CR2
+            if os.path.splitext(content)[-1].lower() in types:
+                # save im array to images dict,  key=filename (sans extension)
+                images[os.path.splitext(content)[0]] = unraw(content)
+    finally:
+        os.chdir(owd)
+        
+    # save images as tiffs in parent directory
+    parent = get_parent(directory)
+    try:
+        os.chdir(parent)
+        os.makedirs("unraw", exist_ok=True)
+        save_images(images, images.keys(), "unraw")
+    finally:
+        os.chdir(owd)
+                
+
 # prompt the user to select images from list 'names', and return
 # dicts of [name]:[file] and [name]:[image array], as well as the path
 # of the folder the first image is from
+# NOTE: works for raw images BUT will convert to 8-bit
 def select_images(names):
     ui = UI()     # create UI object for file select dialog
     
     # choose imgs to create calibration from
     files = {name:ui.getfile("Choose "+name) for name in names} 
     images = {name:np.array(Image.open(files[name])) for name in names}
-    folder = '/'.join(files['im1'].split('/')[:-1]) 
+    folder = '/'.join(files[names[0]].split('/')[:-1]) 
     
     return (files, images, folder) 
 
@@ -94,3 +144,6 @@ def save_images(images, names, folder):
     for name in names:
         Image.fromarray(images[name]).save(
             folder+"/"+name+".tif")
+        
+if __name__ == "__main__":
+    unraw_dir()
