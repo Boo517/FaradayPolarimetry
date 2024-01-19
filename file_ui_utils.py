@@ -13,6 +13,7 @@ import tkinter as Tkinter, tkinter.filedialog as tkFileDialog
 from PIL import Image
 import numpy as np
 import rawpy
+import datetime
 import os
 
 #%%
@@ -51,18 +52,32 @@ FUNCTIONS
 """
 # converts a path separated by forward slashes by one separated by 
 # backslashes
+ # NOTE: __file__ path style is  "C:\foo\bar", tkinter style is "C:/foo/bar"
+ # and os style is "C:\\foo\\bar
 def backslashify(path):
     return "/".join(path.split("\\"))
 
 def get_parent(file):
+    file = backslashify(file) if "\\" in file else file
     return '/'.join(file.split('/')[:-1])
     
 # returns the folder containing the FaradayPolarimetry scripts
 def get_program_folder():
-    # get parent of program file
-    # NOTE: __file__ path style is  "C:\foo\bar", tkinter style is "C:/foo/bar"
-    # and os style is "C:\\foo\\bar"
-    return get_parent(backslashify(__file__))
+    return get_parent(__file__)
+
+# generates dateshot string based on today's date e.g "011923"
+# and prompting user for shot #
+def get_dateshot():
+    # get date
+    today = datetime.date.today()
+    # 0 pad singel-digit months and days
+    month = "0"+str(today.month) if today.month<10 else str(today.month)
+    day = "0"+str(today.day) if today.day<10 else str(today.day)
+    year = str(today.year)[-2:]
+    # prompt user for shot string
+    shot = input("Input shot string (e.g s4, c2):\n")
+    return month+day+year+shot
+    
 
 # renames a file so that it has a prefix
 # also works with directories
@@ -96,9 +111,7 @@ def unraw(file):
 # prompts the user for a directory
 # takes all the .CR2 images in that directory and converts them to .tiffs, 
 # saving them in a new folder
-def unraw_dir():
-    ui = UI()
-    directory = ui.getdir()
+def unraw_dir(directory):
     types = [".cr2"]
     owd = os.getcwd()
     try:
@@ -130,8 +143,6 @@ def unraw_dir():
 # NOTE: works for raw images BUT will convert to 8-bit
 def select_images(names):
     ui = UI()     # create UI object for file select dialog
-    
-    # choose imgs to create calibration from
     files = {name:ui.getfile("Choose "+name) for name in names} 
     images = {name:np.array(Image.open(files[name])) for name in names}
     folder = '/'.join(files[names[0]].split('/')[:-1]) 
@@ -144,6 +155,14 @@ def save_images(images, names, folder):
     for name in names:
         Image.fromarray(images[name]).save(
             folder+"/"+name+".tif")
-        
+
+def main():
+    ui = UI()
+    unraw_dir(ui.getdir())   
+
+#%%
+"""
+MAIN
+"""
 if __name__ == "__main__":
-    unraw_dir()
+    main()
