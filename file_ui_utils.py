@@ -158,7 +158,7 @@ def save_images(images, names, folder):
 
 def main():
     ui = UI()
-    unraw_dir(ui.getdir())   
+    unraw_dir(ui.getdir("Choose a directory to unraw"))   
 
 #%%
 """
