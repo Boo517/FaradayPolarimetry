@@ -141,7 +141,7 @@ def calibrate_select():
     names = ["im1", "im2"]
     files = {name:ui.getfile("Choose "+name) for name in names} 
     images = {name:np.array(Image.open(files[name])) for name in names}
-    folder = '/'.join(files['im1'].split('/')[:-1]) 
+    folder = utils.get_parent(files['im1'])
 
     # unflip 
     images["im2"]= np.flip(images["im2"], 1)
@@ -179,7 +179,7 @@ def apply_select():
 
 # select images to create calibration from, use calibration to align the images
 # used to create the calibration, plot them, and save them
-def main(plot=False,save=False):
+def main(plot=False,save=True):
     # create calibration
     images = {}
     (images["im1"], images["im2"], calibration, folder) = calibrate_select()

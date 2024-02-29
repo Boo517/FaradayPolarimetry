@@ -10,7 +10,6 @@ This is a temporary script file.
 PACKAGE IMPORTS
 """
 import numpy as np
-from PIL import Image
 import matplotlib.pyplot as plt
 import calibrate
 import os
@@ -27,7 +26,7 @@ OPTIONS
 EXPERIMENTAL VALUES
 """
 # taken from Ann and Hanyu's MAE 199 report
-V = 31.4    #[rad/(T*m)]Verdet constant
+V = 31.4    #[rad/(T*m)]Verdet constant for 
 L = 0.011   #[m]Faraday glass length
 #%%
 """
@@ -40,14 +39,9 @@ ui = utils.UI()
 """
 FILE IMPORT
 """
-# select bg and shot images, saving filenames and loading images into arrays
-# NOTE: For now, can't figure out how to get PIL to import raw images as 16-bit
-# instead of 8-bit. Just use imagej module to convert to 16-bit tiff first
+# select bg and shot images
 names = ["bg1", "shot1", "bg2", "shot2"]
-files = {name:ui.getfile("Choose "+name) for name in names} 
-images = {name:np.array(Image.open(files[name])) for name in names}
-#get path to folder containing first file in files
-folder = '/'.join(files['bg1'].split('/')[:-1]) + '/' 
+(files, images, folder) = utils.select_images(names)
 dateshot = folder.split('/')[-3]    # date and shot# string, eg 110223s4
     
 #%%
