@@ -1,0 +1,8 @@
+C:\\
+C:\\foo\\bar.txt
+
+C:/
+C:/foo/bar.txt
+
+C:\
+C:\foo\bar.txt

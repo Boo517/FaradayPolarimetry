@@ -18,7 +18,7 @@ import os
 
 #%%
 """
-class with its own root tk node with a variety of simple user input methods
+class with its own root tk node and a variety of simple user input methods
 """
 class UI():
     # create a root tk element, hide it, and make it appear above other windows
@@ -50,16 +50,19 @@ class UI():
 """
 FUNCTIONS
 """
-# converts a path separated by forward slashes by one separated by 
-# backslashes
- # NOTE: __file__ path style is  "C:\foo\bar", tkinter style is "C:/foo/bar"
- # and os style is "C:\\foo\\bar
-def backslashify(path):
-    return "/".join(path.split("\\"))
+# this function takes a path separated by single or double forward
+# or backslashes, and returns a list of the path elements in order
+# e.g IN: splitpath("C:\\foo\\bar.txt") OUT: ["C:", "foo", "bar.txt"]
+def splitpath(path):
+    if "\\" in path:
+        return [i for i in path.split("\\") if i!='']
+    return [i for i in path.split("/") if i!='']
 
-def get_parent(file):
-    file = backslashify(file) if "\\" in file else file
-    return '/'.join(file.split('/')[:-1])
+# returns filepath string of parent of provided filepath
+# e.g IN: get_parent("C:/foo/bar.txt") OUT: "C:/foo"
+# specify a separation character if wanted (e.g "\\" for Unix style)
+def get_parent(file, separator="/"):
+    return separator.join(splitpath(file)[:-1])
     
 # returns the folder containing the FaradayPolarimetry scripts
 def get_program_folder():
@@ -82,7 +85,7 @@ def get_dateshot():
 # renames a file so that it has a prefix
 # also works with directories
 def prefix_file(path, prefix):
-    filename = path.split('/')[-1]
+    filename = os.path.basename(path)
     filename = prefix+filename
     os.rename(path, filename)
 
@@ -145,8 +148,7 @@ def select_images(names):
     ui = UI()     # create UI object for file select dialog
     files = {name:ui.getfile("Choose "+name) for name in names} 
     images = {name:np.array(Image.open(files[name])) for name in names}
-    folder = '/'.join(files[names[0]].split('/')[:-1]) 
-    
+    folder = get_parent(files(names[0])) 
     return (files, images, folder) 
 
 # saves images in dict 'images' with keys in 'names' to 'folder'
